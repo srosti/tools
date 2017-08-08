@@ -1,6 +1,6 @@
 import socket as sock
 rawSocket = sock.socket(sock.AF_PACKET, sock.SOCK_RAW, sock.htons(0x0003))
-rawSocket.bind(("wlp3s0", 0x0003))
+rawSocket.bind(("mon0", 0x0003))
 ap_list = set()
 while True:
     pkt = rawSocket.recvfrom(2048)[0] 

@@ -31,7 +31,7 @@ class Scapy80211():
 #      self.intfmon = intf + 'mon'
       self.intfmon = intf
 
-      sniff(prn = self.PacketHandler)
+#      sniff(prn = self.PacketHandler)
 
       # set Scapy conf.iface
       conf.iface = self.intfmon
@@ -62,7 +62,7 @@ class Scapy80211():
       except:
         raise
       
-      pdb.set_trace()
+#      pdb.set_trace()
 
 
     def ProbeReq(self,count=10,ssid='',dst='ff:ff:ff:ff:ff:ff'):
@@ -81,7 +81,7 @@ class Scapy80211():
       except:
         raise
 
-      pdb.set_trace()
+#      pdb.set_trace()
 
 
 
@@ -143,7 +143,7 @@ class Scapy80211():
 
     def PacketHandler(self, pkt) :
       if pkt.haslayer(Dot11) :
-            if pkt.type == 0 and pkt.subtype == 8 :
+          if pkt.type == 0 and pkt.subtype == 8 :
                 if pkt.addr2 not in ap_list :
                     ap_list.append(pkt.addr2)
                     print("AP MAC: {} with SSID: {} ".format(pkt.addr2, pkt.info))
@@ -156,7 +156,8 @@ if __name__ == "__main__":
 [*] Assumes 'wlan0' is your wireless NIC!
 [*] Author: Joff Thyer, 2014
     """
-    sdot11 = Scapy80211(intf='wlp3s0', ssid='AER1600-51f')
+#    sdot11 = Scapy80211(intf='wlp3s0', ssid='AER1600-51f')
+    sdot11 = Scapy80211(intf='mon0', ssid='AER1600-51f')
     sdot11.Beacon()
     sdot11.ProbeReq()
     sdot11.DNSQuery(ns='10.10.10.2')
