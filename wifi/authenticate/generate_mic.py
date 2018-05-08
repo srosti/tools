@@ -125,6 +125,8 @@ def RunTest():
     micStr = b2a_hex(mics[2]).decode().upper()[:-8]
     print("actual mic:\t" + micStr)
     print('MATCH\n' if micStr == mic3Str else 'MISMATCH\n')
+#    from pbkdf2 import PBKDF2
+#    temp = PBKDF2(psk, ssid, 4096).read(32)
     return
 
 RunTest()
