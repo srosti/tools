@@ -60,7 +60,7 @@ def disable_mon():
         if re.search('[Pp]assword', stdout):
             channel.send(server_password + '\n')
         if re.search('removed', stdout):
-            print("Disabled {} interface".monitor_iface)
+            print("Disabled {} interface".format(monitor_iface))
             break
 
 
