@@ -1,5 +1,7 @@
 from scapy.all import *
- 
+from binascii import a2b_hex, b2a_hex
+
+
 class Dot11EltRates(Packet):
     """
     Our own definition for the supported rates field
@@ -34,9 +36,14 @@ class Monitor:
         self.bssid = bssid
         self.auth_found = False
         self.assoc_found = False
+        self.eapol1_found = False
         self.dot11_rates = Dot11EltRates()
+        self.anonce = None
+        self.key_info = None
+        self.key_ack = None
+        self.key_mic = None
+        self.install = None
 
- 
     def send_packet(self, packet, packet_type=None):
         """
         Send and display a packet.
@@ -46,12 +53,16 @@ class Monitor:
         :return:
         """
 
-        print("send_packet()")
 
         # Send out the packet
         if packet_type is None:
+            print("send_packet()")
+            send(packet)
+        elif packet_type == "EAP2":
+            print("send_packet() - EAP2")
             send(packet)
         elif packet_type == "AssoReq":
+            print("send_packet() - Assocation Request")
             packet /= self.dot11_rates
             send(packet)
         else:
@@ -94,7 +105,52 @@ class Monitor:
             self.bssid == seen_sender and \
                 self.sta_mac == seen_receiver:
             self.assoc_found = True
-            print("Detected Association Response from Source {0}".format(
+            print("Detected Association Response from authenticator {0}".format(
+                seen_bssid))
+        return self.assoc_found
+    
+    def check_eapol1(self, packet):
+        """
+        Try to find the EAPOL message 1
+ 
+        :param packet: sniffed packet to check for matching association
+        """
+        seen_receiver = packet[Dot11].addr1
+        seen_sender = packet[Dot11].addr2
+        seen_bssid = packet[Dot11].addr3
+        
+        print("check_eapol1")
+        packet.show()
+
+        keymic_frame = packet[scapy.layers.dot11.EAPOL].copy()
+        print("***** keymic information *****")
+        print(b2a_hex(keymic_frame.load))
+        # Extract Anonce
+        #print(b2a_hex(keymic_frame.load)[26:90])
+        self.anonce = b2a_hex(keymic_frame.load)[26:90]
+        print("anonce={}".format(self.anonce))
+        self.key_info = b2a_hex(keymic_frame.load)[:6]
+        print("key_info={}".format(self.key_info))
+        print("key_info={}".format(type(self.key_info)))
+        self.key_ack = (int(self.key_info, 16) & 0x80) >> 7
+        self.key_mic = (int(self.key_info, 16) & 0x100) >> 8
+        self.install = (int(self.key_info, 16) & 0x40) >> 6
+        print("key_ack={}".format(self.key_ack))
+        print("key_mic={}".format(self.key_mic))
+        print("install={}".format(self.install))
+
+        if self.install:
+            print("WPA2 Key install complete")
+        elif self.key_mic:
+            print("Station sent key MIC")
+        elif self.key_ack:
+            print("Authenticator sent key ACK")
+
+        if self.bssid == seen_bssid and \
+            self.bssid == seen_sender and \
+                self.sta_mac == seen_receiver:
+            self.assoc_found = True
+            print("Detected EAP2 Response from authenticator {0}".format(
                 seen_bssid))
         return self.assoc_found
  
@@ -107,11 +163,18 @@ class Monitor:
         mp_queue.put(self.auth_found)
  
     def search_assoc_resp(self, mp_queue):
-        
         print("\nScanning max 5 seconds for Association Response "
               "from BSSID {0}".format(self.bssid))
         sniff(iface=self.mon_ifc, lfilter=lambda x: x.haslayer(Dot11AssoResp),
               stop_filter=self.check_assoc,
               timeout=10)
         mp_queue.put(self.assoc_found)
+    
+    def search_eapol1_resp(self, mp_queue):
+        print("\nScanning max 5 seconds for Association Response "
+              "from BSSID {0}".format(self.bssid))
+        sniff(iface=self.mon_ifc, lfilter=lambda x: x.haslayer(EAPOL),
+              stop_filter=self.check_eapol1,
+              timeout=10)
+        mp_queue.put(self.anonce)
 

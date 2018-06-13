@@ -32,8 +32,6 @@ class ConnectionPhase:
 #        packet = Dot11(type=0, subtype=11, addr1=self.bssid, addr2=self.sta_mac,
 #                      addr3=self.bssid) / param 
 
-
-
         pkt = Dot11(
             addr1=self.bssid,
             addr2=self.sta_mac,
