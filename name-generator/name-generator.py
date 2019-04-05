@@ -9,7 +9,8 @@ response = urllib.request.urlopen(word_url)
 long_txt = response.read().decode()
 words = long_txt.splitlines()
 
-# Second way - get the list locally - TODO: need to check if this exists on raspberry pi
+# Second way - get the list locally
+# If words list doesn't exist: sudo apt install wamerican-small
 words2 = None
 with open('/usr/share/dict/words') as f:
     words2 = f.read().splitlines()
