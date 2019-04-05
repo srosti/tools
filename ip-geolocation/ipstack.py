@@ -9,6 +9,6 @@ result = result.decode('utf8')
 data = json.loads(result)
 
 if 'success' not in data:
-    print('Country Code={}'.format(data['country_code']))
+    print('{}'.format(data))
 else:
     print('Error retrieving Country Code for IP address: {}'.format(ip_addr))
